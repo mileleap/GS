@@ -216,6 +216,7 @@ int CudaRasterizer::Rasterizer::forward(
 	const float tan_fovx, float tan_fovy,
 	const bool prefiltered,
 	float* out_color,
+  const float low_pass,
 	int* radii,
 	bool debug)
 {
@@ -269,7 +270,8 @@ int CudaRasterizer::Rasterizer::forward(
 		geomState.conic_opacity,
 		tile_grid,
 		geomState.tiles_touched,
-		prefiltered
+		prefiltered,
+    low_pass
 	), debug)
 
 	// Compute prefix sum over full list of touched tile counts by Gaussians
@@ -366,6 +368,7 @@ void CudaRasterizer::Rasterizer::backward(
 	float* dL_dsh,
 	float* dL_dscale,
 	float* dL_drot,
+  const float low_pass,
 	bool debug)
 {
 	GeometryState geomState = GeometryState::fromChunk(geom_buffer, P);
@@ -430,5 +433,6 @@ void CudaRasterizer::Rasterizer::backward(
 		dL_dcov3D,
 		dL_dsh,
 		(glm::vec3*)dL_dscale,
-		(glm::vec4*)dL_drot), debug)
+		(glm::vec4*)dL_drot,
+    low_pass), debug)
 }
