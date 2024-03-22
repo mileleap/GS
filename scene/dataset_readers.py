@@ -129,7 +129,7 @@ def storePly(path, xyz, rgb):
     ply_data = PlyData([vertex_element])
     ply_data.write(path)
 
-def readColmapSceneInfo(path, images, eval, llffhold=8):
+def readColmapSceneInfo(path, images, eval, llffhold=8, num_pts=1000000, c2f=False):
     try:
         cameras_extrinsic_file = os.path.join(path, "sparse/0", "images.bin")
         cameras_intrinsic_file = os.path.join(path, "sparse/0", "cameras.bin")
@@ -164,6 +164,33 @@ def readColmapSceneInfo(path, images, eval, llffhold=8):
         except:
             xyz, rgb, _ = read_points3D_text(txt_path)
         storePly(ply_path, xyz, rgb)
+
+    try:
+        pcd = fetchPly(ply_path)
+    except:
+        pcd = None
+
+    cam_pos = []
+    for k in cam_extrinsics.keys():
+        cam_pos.append(cam_extrinsics[k].tvec)
+    cam_pos = np.array(cam_pos)
+    min_cam_pos = np.min(cam_pos)
+    max_cam_pos = np.max(cam_pos)
+    mean_cam_pos = (min_cam_pos + max_cam_pos) / 2.0
+    cube_mean = (max_cam_pos - min_cam_pos) * 1.5
+
+    if c2f:
+        xyz = np.random.random((num_pts, 3)) * (max_cam_pos - min_cam_pos) * 3 - (cube_mean - mean_cam_pos)
+        print(f"Generating C2F point cloud ({num_pts})...")
+    else:
+        xyz = np.random.random((num_pts, 3)) * nerf_normalization["radius"] * 3 - nerf_normalization["radius"] * 1.5
+        xyz = xyz + nerf_normalization["translate"]
+        print(f"Generating DSV point cloud ({num_pts})...")
+
+    shs = np.random.random((num_pts, 3))
+    pcd = BasicPointCloud(points=xyz, colors=shs, normals=np.zeros((num_pts, 3)))
+    storePly(ply_path, xyz, SH2RGB(shs) * 255)
+
     try:
         pcd = fetchPly(ply_path)
     except:

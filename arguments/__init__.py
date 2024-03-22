@@ -87,6 +87,14 @@ class OptimizationParams(ParamGroup):
         self.densify_until_iter = 15_000
         self.densify_grad_threshold = 0.0002
         self.random_background = False
+        self.num_gaussians = 1000000
+
+        self.c2f = False
+        self.c2f_recompute_filter_steps = 1000
+        self.c2f_max_low_pass = 300
+        self.c2f_oneupsh_offset = 5000
+        self.c2f_num_gaussians = 10
+
         super().__init__(parser, "Optimization Parameters")
 
 def get_combined_args(parser : ArgumentParser):
